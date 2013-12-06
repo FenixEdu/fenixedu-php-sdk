@@ -219,7 +219,7 @@ class FenixEdu{
 	}
 
 	public function getPersonPayments() {
-		return $this->get("/person/payments");
+		return $this->get("person/payments");
 	}
 
 	public function getSpaces() {
