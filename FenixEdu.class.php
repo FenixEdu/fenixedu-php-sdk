@@ -147,7 +147,7 @@ class FenixEdu{
 	}
 	
 	public function getIstId() {
-		return $this->getPerson()->istId;
+		return $this->getPerson()->username;
 	}
 
 	public function getAboutInfo() {
