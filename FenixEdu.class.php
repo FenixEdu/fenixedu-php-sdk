@@ -90,8 +90,7 @@ class FenixEdu{
 			$json = json_decode($req->getResponseBody());
 			$this->accessToken = $_SESSION['accessToken'] = $json->access_token;
 			$this->refreshToken = $_SESSION['refreshToken'] = $json->refresh_token;
-			$this->expirationTime = $_SESSION['expires'] = time() + $json->expires;
-			header('Location: main.php');
+			$this->expirationTime = $_SESSION['expires'] = time() + $json->expires_in;
 		} else {
 			echo '<pre>'.print_r($req).'</pre>';
 		}
@@ -121,7 +120,7 @@ class FenixEdu{
 		$result = json_decode($req->getResponseBody());
 		if($info['http_code'] == 200){	
 			$this->accessToken = $_SESSION['accessToken'] = $result->access_token;
-			$this->expirationTime = $_SESSION['expires'] = time() + $result->expires;
+			$this->expirationTime = $_SESSION['expires'] = time() + $result->expires_in;
 		} elseif($info['http_code'] == 401) {
 			throw new FenixEduException($result);
 		}
@@ -147,7 +146,7 @@ class FenixEdu{
 	}
 	
 	public function getIstId() {
-		return $this->getPerson()->istId;
+		return $this->getPerson()->username;
 	}
 
 	public function getAboutInfo() {
