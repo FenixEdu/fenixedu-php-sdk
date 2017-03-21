@@ -36,9 +36,19 @@ class SessionTokenHolder extends TokenHolder {
         return $_SESSION['fenix_expires'] = $expiry;
     }
     
+    public function getState() {
+        return isset($_SESSION['fenix_state']) ? $_SESSION['fenix_state'] : NULL;
+    }
+    
+    public function setState($state) {
+        if($state !== NULL) $_SESSION['fenix_state'] = $state;
+        else unset($_SESSION['fenix_state']);
+    }
+    
     public function drop() {
         unset($_SESSION['fenix_access_token']);
         unset($_SESSION['fenix_refresh_token']);
         unset($_SESSION['fenix_expires']);
+        unset($_SESSION['fenix_state']);
     }
 }

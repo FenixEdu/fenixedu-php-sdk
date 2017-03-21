@@ -18,14 +18,14 @@ class Course extends FenixEduEntity {
     
     private function loadDataFromCourse() {
         if(!property_exists($this->data, 'url') || !property_exists($this->data, 'competences')) {
-            $this->mergeData($this->fenixEdu->getCourse($this->data->id, $this->data->academicTerm), $this->data);
+            $this->mergeData($this->fenixEdu->getCourse($this->data->id, $this->academicTermYear($this->data->academicTerm)), $this->data);
         }
     }
     
     private function loadDataFromDegree() {
         if(!property_exists($this->data, 'credits')) {
             $degree = $this->fenixEdu->getDegree($this->data->degrees[0]->id, $this->data->academicTerm);
-            foreach($this->fenixEdu->getDegreeCourses($degree->id, $this->data->academicTerm) as $course) {
+            foreach($this->fenixEdu->getDegreeCourses($degree->id, $this->academicTermYear($this->data->academicTerm)) as $course) {
                 if(strcmp($course->id, $this->data->id) == 0) {
                     $this->mergeData($this->data, $course);
                     return;
@@ -104,7 +104,7 @@ class Course extends FenixEduEntity {
      */
     public function getProgram() {
         $this->loadDataFromCourse();
-        return $this->data->competences[0]->program;
+        return empty($this->data->competences) ? NULL : $this->data->competences[0]->program;
     }
     
     /** Returns an array with this Course's bibliographic references.
@@ -113,8 +113,10 @@ class Course extends FenixEduEntity {
         require_once("Book.php");
         $this->loadDataFromCourse();
         $books = array();
-        foreach($this->data->competences[0]->bibliographicReferences as $book) {
-            $books[] = new Book($this->fenixEdu, $book);
+        if(!empty($this->data->competences)) {
+            foreach($this->data->competences[0]->bibliographicReferences as $book) {
+                $books[] = new Book($this->fenixEdu, $book);
+            }
         }
         return $books;
     }
@@ -125,7 +127,9 @@ class Course extends FenixEduEntity {
         require_once("Degree.php");
         $this->loadDataFromCourse();
         $degrees = array();
-        foreach($this->data->degrees as $degree) $degrees[] = new Degree($this->fenixEdu, $degree);
+        foreach($this->data->competences as $competence) {
+            foreach($competence->degrees as $degree) $degrees[] = new Degree($this->fenixEdu, $degree);
+        }
         return $degrees;
     }
     
@@ -162,7 +166,10 @@ class Course extends FenixEduEntity {
     }
     
     public function getSchedule() {
-        //TODO calendar first
+        require_once("Schedule.php");
+        $schedule = $this->fenixEdu->getCourseSchedule($this->getId());
+        $schedule->course = $this->data;
+        return new Schedule($this->fenixEdu, $schedule);
     }
     
     /** Returns the number of Students enroled on this Course.
@@ -195,7 +202,7 @@ class Course extends FenixEduEntity {
     public function getGrade() {
         if(property_exists($this->data, 'grade')) return $this->data->grade;
         $this->fenixEdu->login();
-        foreach($this->fenixEdu->getPersonCourses($this->data->academicTerm)->enrolments as $course) {
+        foreach($this->fenixEdu->getPersonCourses($this->academicTermYear($this->data->academicTerm))->enrolments as $course) {
             if(strcmp($course->id, $this->data->id) == 0) {
                 $this->data->grade = $course->grade;
                 return $this->data->grade;
@@ -203,6 +210,7 @@ class Course extends FenixEduEntity {
         }
         foreach($this->fenixEdu->getPersonCurriculum() as $curriculum) {
             foreach ($curriculum->approvedCourses as $course) {
+                if(!property_exists($course, 'id')) continue;
                 if(strcmp($course->id, $this->data->id) == 0) {
                     $this->data->grade = $course->grade;
                     return $this->data->grade;

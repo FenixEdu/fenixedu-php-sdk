@@ -80,6 +80,15 @@ class Institution extends FenixEduEntity {
         return $this->fenixEdu->getAcademicTerms();
     }
     
+    /** Returns the menus of the Canteen.
+     */
+    public function getCanteenMenus() {
+        require_once("CanteenMenu.php");
+        $menus = array();
+        foreach($this->fenixEdu->getCanteen() as $menu) $menus[] = new CanteenMenu($this->fenixEdu, $menu);
+        return $menus;
+    }
+    
     /** Returns an array of ContactSheets with the Institution's contacts.
      */
     public function getContacts() {
@@ -120,10 +129,24 @@ class Institution extends FenixEduEntity {
         return new Degree($this->fenixEdu, $this->fenixEdu->getDegree($id, $academicTerm));
     }
     
+    /** Returns a key-value array with the location names as keys and the
+     * Parking space data as values.
+     */
+    public function getParking() {
+        require_once("Parking.php");
+        $parkings = array();
+        foreach(((array) $this->fenixEdu->getParking()) as $key => $parking) {
+            $parking->location = $key;
+            $parkings[] = new Parking($this->fenixEdu, $parking);
+        }
+        return $parkings;
+    }
+    
     /** Returns data on the Shuttle service, including schedule and stations.
      */
     public function getShuttle() {
-        //TODO Shuttle
+        require_once("Shuttle.php");
+        return new Shuttle($this->fenixEdu, $this->fenixEdu->getShuttle());
     }
     
     /** Returns an array with this Institution's campi.

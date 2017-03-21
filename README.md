@@ -37,7 +37,7 @@ $person = $fenixEdu->getPerson();
 $username = $person->getIstId();
 ```
 Notice that when using the domain approach, logging in is done automatically if necessary.
-You may still still force the user to login at any point you wish when using this approach, for example, to ensure only authenticated users can access your application.
+You may still force the user to login at any point you wish when using this approach, for example, to ensure only authenticated users can access your application.
 
 The next example shows how to get the username using the FenixEduServices interface:
 ```
@@ -53,13 +53,13 @@ When you wish to explicitly define when the user must login or logout, these are
 //Login directly from the FenixEdu instance
 $fenixEdu->login();
 
-//Login from the FenixEduServices instance
-$services->login();
-
-//Login directly from the FenixEdu instance
+//Logout directly from the FenixEdu instance
 $fenixEdu->logout();
 
 //Login from the FenixEduServices instance
+$services->login();
+
+//Logout from the FenixEduServices instance
 $services->logout();
 ```
 Logging in or out from either instance is identical.

@@ -61,10 +61,17 @@ class Space extends FenixEduEntity {
     /** Returns an array with the Events occurring in this Space.
      */
     public function getEvents($day = NULL) {
-        if($this->loadedDay !== $day) $this->loadSpace($day);
-        if(!property_exists($this->data, 'events')) return NULL;
+        if($day !== NULL) {
+            if($this->loadedDay !== $day) $this->loadSpace($day);
+        } else {
+            if(!property_exists($this->data, 'events')) $this->loadSpace();
+        }
         $events = array();
-        foreach($this->data->events as $event) $events[] = new Event($this->fenixEdu, $event);
+        if(!property_exists($this->data, 'events')) return $events;
+        foreach($this->data->events as $event) {
+            $event->location = array($this->data);
+            $events[] = new Event($this->fenixEdu, $event);
+        }
         return $events;
     }
     

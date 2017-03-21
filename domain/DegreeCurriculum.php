@@ -16,17 +16,11 @@ class DegreeCurriculum extends FenixEduEntity {
         return new Degree($this->fenixEdu, $this->fenixEdu->getDegree($this->data->degree->id));
     }
     
-    /** Returns the DateTime when the Person started the Degree.
+    /** Returns the Period during which the Person was in the Degree.
      */
-    public function getStart() {
-        return $this->parseDateTime($this->data->start);
-    }
-    
-    /** Returns the DateTime when the Person finished the Degree or NULL if the
-     * Person has not finished the Degree yet.
-     */
-    public function getEnd() {
-        return $this->parseDateTime($this->data->end);
+    public function getPeriod() {
+        require_once("Period.php");
+        return new Period($this->fenixEdu, $this->data);
     }
     
     /** Returns the ECTS the Person has acquired in the Degree.

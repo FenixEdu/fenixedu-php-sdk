@@ -34,7 +34,7 @@ class Person extends FenixEduEntity {
         foreach($this->data->roles as $role) {
             if(strcasecmp($role->type, 'STUDENT') == 0) {
                 foreach($role->registrations as $reg) {
-                    $degree = $this->fenixEdu->getDegree($reg->id, end($reg->academicTerms));
+                    $degree = $this->fenixEdu->getDegree($reg->id, $this->academicTermYear(end($reg->academicTerms)));
                     $degrees[] = new Degree($this->fenixEdu, $degree);
                 }
             }
@@ -48,9 +48,9 @@ class Person extends FenixEduEntity {
         require_once("Degree.php");
         $degrees = array();
         foreach($this->data->roles as $role) {
-            if(strcasecmp($role->type, 'ALUMNI') == 0) {
+            if(strcasecmp($role->type, 'ALUMNI') === 0) {
                 foreach($role->concludedRegistrations as $reg) {
-                    $degree = $this->fenixEdu->getDegree($reg->id, end($reg->academicTerms));
+                    $degree = $this->fenixEdu->getDegree($reg->id, $this->academicTermYear(end($reg->academicTerms)));
                     $degrees[] = new Degree($this->fenixEdu, $degree);
                 }
             }
@@ -123,14 +123,14 @@ class Person extends FenixEduEntity {
     /** Returns an array with the work web addresses of this Person.
      */
     public function getWorkWebAddresses() {
-        return $this->data->webWorkAddresses;
+        return $this->data->workWebAddresses;
     }
     
     /** Returns the academic schedule of this Person.
      */
     public function getCalendar() {
-        //TODO implement Calendar
-        return NULL;
+        require_once("Calendar.php");
+        return new Calendar($this->fenixEdu);
     }
     
     /** Returns an array with the Courses this Person is enroled in.
@@ -160,7 +160,7 @@ class Person extends FenixEduEntity {
      * registered in.
      */
     public function getCurriculum() {
-        include_once("DegreeCurriculum.php");
+        require_once("DegreeCurriculum.php");
         $curricula = array();
         foreach($this->fenixEdu->getPersonCurriculum() as $curriculum) {
             $curricula[] = new DegreeCurriculum($this->fenixEdu, $curriculum);
@@ -171,7 +171,7 @@ class Person extends FenixEduEntity {
     /** Returns an array with the evalutaions applicable to this Person.
      */
     public function getEvaluations() {
-        include_once("Evaluation.php");
+        require_once("Evaluation.php");
         $evaluations = array();
         foreach($this->fenixEdu->getPersonEvaluations() as $evaluation) {
             $evaluations[] = new Evaluation($this->fenixEdu, $evaluation);
@@ -182,7 +182,7 @@ class Person extends FenixEduEntity {
     /** Returns an array with this Person's completed Payments.
      */
     public function getCompletedPayments() {
-        include_once("Payment.php");
+        require_once("Payment.php");
         $payments = array();
         foreach($this->fenixEdu->getPersonPayments()->completed as $payment) {
             $payments[] = new Payment($this->fenixEdu, $payment);
@@ -193,7 +193,7 @@ class Person extends FenixEduEntity {
     /** Returns an array with this Person's pending Payments.
      */
     public function getPendingPayments() {
-        include_once("Payment.php");
+        require_once("Payment.php");
         $payments = array();
         foreach($this->fenixEdu->getPersonPayments()->pending as $payment) {
             $payments[] = new Payment($this->fenixEdu, $payment);

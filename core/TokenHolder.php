@@ -35,6 +35,15 @@ abstract class TokenHolder {
      */
     abstract public function setTokenExpiry($expiry);
     
+    /** Gets the stored state string. Returns NULL if no state is set.
+     */
+    abstract public function getState();
+    
+    /** Stores a new state string.
+     * If <i>$state</i> is NULL, destroys the stored state, if any.
+     */
+    abstract public function setState($state);
+    
     /** Destroys the data stored in this TokenHolder.
      */
     abstract public function drop();

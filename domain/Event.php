@@ -15,16 +15,11 @@ class Event extends FenixEduEntity {
         return $this->data->type;
     }
     
-    /** Returns the starting DateTime of the Event.
+    /** Returns the Period of the Event.
      */
-    public function getStart() {
-        return $this->parseDateTime($this->data->period->start);
-    }
-    
-    /** Returns the ending DateTime of the Event.
-     */
-    public function getEnd() {
-        return $this->parseDateTime($this->data->period->end);
+    public function getPeriod() {
+        require_once("Period.php");
+        return new Period($this->fenixEdu, $this->data->period);
     }
     
     /** Returns the description of the Event or NULL if it has none.
@@ -46,6 +41,16 @@ class Event extends FenixEduEntity {
     public function getInfo() {
         if(!property_exists($this->data, 'info')) return NULL;
         return $this->data->info;
+    }
+    
+    /** Returns an array with the Spaces this Event will be in.
+     */
+    public function getLocations() {
+        $locations = array();
+        if(!property_exists($this->data, 'location')) return $locations;
+        require_once("Space.php");
+        foreach($this->location as $location) $locations[] = new Space($this->fenixEdu, $location);
+        return $locations;
     }
     
     /** Returns the Course the Event belongs to or NULL if it has none.

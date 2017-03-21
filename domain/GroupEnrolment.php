@@ -21,18 +21,11 @@ class GroupEnrolment extends FenixEduEntity {
         return $this->data->description;
     }
     
-    /** Returns the starting DateTime of this GroupEnrolment's enrolment 
-     * period.
+    /** Returns this GroupEnrolment's enrolment Period.
      */
-    public function getStart() {
-        return $this->parseDateTime($this->data->enrolmentPeriod->start);
-    }
-    
-    /** Returns the ending DateTime of this GroupEnrolment's enrolment
-     * period.
-     */
-    public function getEnd() {
-        return $this->parseDateTime($this->data->enrolmentPeriod->end);
+    public function getPeriod() {
+        require_once("Period.php");
+        return new Period($this->fenixEdu, $this->data->enrolmentPeriod);
     }
     
     /** Returns the enrolment policy of this GroupEnrolment.

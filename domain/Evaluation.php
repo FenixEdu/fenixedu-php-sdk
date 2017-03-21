@@ -28,30 +28,19 @@ class Evaluation extends FenixEduEntity {
         return $this->data->type;
     }
     
-    /** Returns the starting DateTime of this Evaluation.
+    /** Returns the Period of this Evaluation.
      */
-    public function getStart() {
-        return $this->parseDateTime($this->data->evaluationPeriod->start);
+    public function getPeriod() {
+        require_once("Period.php");
+        return new Period($this->fenixEdu, $this->data->evaluationPeriod);
     }
     
-    /** Returns the ending DateTime of this Evaluation.
+    /** Returns this Evaluation's enrolment Period.
      */
-    public function getEnd() {
-        return $this->parseDateTime($this->data->evaluationPeriod->end);
-    }
-    
-    /** Returns the starting DateTime of this Evaluation's enrolment period.
-     */
-    public function getEnrolmentStart() {
+    public function getEnrolmentPeriod() {
         if(!property_exists($this->data, 'enrollmentPeriod')) return NULL;
-        return $this->parseDateTime($this->data->enrollmentPeriod->start);
-    }
-    
-    /** Returns the ending DateTime of this Evaluation's enrolment period.
-     */
-    public function getEnrolmentEnd() {
-        if(!property_exists($this->data, 'enrollmentPeriod')) return NULL;
-        return $this->parseDateTime($this->data->enrollmentPeriod->end);
+        require_once("Period.php");
+        return new Period($this->fenixEdu, $this->data->enrollmentPeriod);
     }
     
     /** Returns whether the present date is within this Evaluation's enrolment
@@ -85,8 +74,10 @@ class Evaluation extends FenixEduEntity {
      */
     public function getRooms() {
         require_once("Space.php");
-    	$spaces = $array();
-    	foreach($this->data->rooms as $space) $spaces[] = new Space($this->fenixEdu, $space);
+    	$spaces = array();
+    	if(property_exists($this->data, 'rooms')) {
+    	    foreach($this->data->rooms as $space) $spaces[] = new Space($this->fenixEdu, $space);
+    	}
     	return $spaces;
     }
     

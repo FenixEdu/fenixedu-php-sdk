@@ -158,7 +158,7 @@ class Degree extends FenixEduEntity {
         require_once("Course.php");
         $this->loadDataFromDegree();
         $courses = array();
-        foreach($this->fenixEdu->getDegreeCourses($this->getId(), $this->getAcademicTerm()) as $course) {
+        foreach($this->fenixEdu->getDegreeCourses($this->getId(), $this->academicTermYear($this->getAcademicTerm())) as $course) {
             $courses[] = new Course($this->fenixEdu, $course);
         }
         return $courses;

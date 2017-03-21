@@ -41,18 +41,12 @@ class Payment extends FenixEduEntity {
         return $this->parseDateTime($this->data->date);
     }
     
-    /** Returns the starting DateTime of this Payment's period.
+    /** Returns this Payment's Period.
      */
     public function getStart() {
         if(!property_exists($this->data, 'paymentPeriod')) return NULL;
-        return $this->parseDateTime($this->data->paymentPeriod->start);
-    }
-    
-    /** Returns the ending DateTime of this Payment's period.
-     */
-    public function getEnd() {
-        if(!property_exists($this->data, 'paymentPeriod')) return NULL;
-        return $this->parseDateTime($this->data->paymentPeriod->end);
+        require_once("Period.php");
+        return new Period($this->data->paymentPeriod);
     }
     
     /** Returns the entity responsible for this Payment.

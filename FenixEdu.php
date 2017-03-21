@@ -1,15 +1,21 @@
 <?php
 require_once("core/FenixEduConnector.php");
-require_once("SessionTokenHolder.php");
 
 /** A wrapper class for the FenixEdu client library.
  */
 class FenixEdu {
     private $services;
         
-    public function __construct($config, $tokenHolder = NULL) {
-        if($tokenHolder === NULL) $tokenHolder = new SessionTokenHolder();
-        $connector = new FenixEduConnector($config, $tokenHolder);
+    public function __construct($config, $tokenHolder = NULL, $stateGenerator = NULL) {
+        if($tokenHolder === NULL) {
+            require_once("SessionTokenHolder.php");
+            $tokenHolder = new SessionTokenHolder();
+        }
+        if($stateGenerator === NULL) {
+            require_once("RandomHashStateGenerator.php");
+            $stateGenerator = new RandomHashStateGenerator();
+        }
+        $connector = new FenixEduConnector($config, $tokenHolder, $stateGenerator);
         $this->services = new FenixEduServices($connector);
     }
     
@@ -92,7 +98,9 @@ class FenixEduServices {
         return $this->connector->get("canteen");
     }
 
-    //TODO documentation
+    /** This endpoint returns the contact information of the institution where
+     * the application is deployed.
+     */
     public function getContacts() {
         return $this->connector->get("contacts");
     }
@@ -107,6 +115,7 @@ class FenixEduServices {
      */
     public function getCourse($id) {
         $course = $this->connector->get("courses/" . $id);
+        if($course === NULL) return NULL;
         if(!property_exists($course, 'id')) $course->id = $id;
         return $course;
     }
@@ -163,6 +172,7 @@ class FenixEduServices {
     public function getDegree($id, $academicTerm = NULL) {
         $query = $academicTerm !== NULL ? "?academicTerm=" . $academicTerm : "";
         $degree = $this->connector->get("degrees/" . $id . $query);
+        if($degree === NULL) return NULL;
         if(!property_exists($degree, 'id')) $degree->id = $id;
         return $degree;
     }

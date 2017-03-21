@@ -2,16 +2,18 @@
 require_once("RestRequest.php");
 require_once("FenixEduException.php");
 require_once("TokenHolder.php");
+require_once("StateGenerator.php");
 
 class FenixEduConnector {
     private $accessKey;
     private $secretKey;
-
-    private $user;
+    private $callbackUrl;
+    private $apiBaseUrl;
 
     private $code;
 
     private $tokenHolder;
+    private $stateGenerator;
     
     //The TokenHolder doesn't necessarily make these attributes redundant!
     //remember: reading from a file or database is a lot slower than reading from RAM
@@ -19,11 +21,9 @@ class FenixEduConnector {
     private $refreshToken;
     private $expirationTime;
     
-    private $callbackUrl;
-    private $apiBaseUrl;
-    
-    public function __construct($config, $tokenHolder) {
+    public function __construct($config, $tokenHolder, $stateGenerator) {
         $this->tokenHolder = $tokenHolder;
+        $this->stateGenerator = $stateGenerator;
         $this->accessKey = $config["access_key"];
         $this->secretKey = $config["secret_key"];
         if($tokenHolder->hasAccessToken()) {
@@ -87,10 +87,7 @@ class FenixEduConnector {
             $this->tokenHolder->setAccessToken($this->accessToken);
             $this->tokenHolder->setTokenExpiry($this->expirationTime);
         } elseif($info['http_code'] == 401) {
-            //the API is currently incoherent in the description field!
-            //for this reason, instead of handling the error, we'll just assume
-            //the token is no longer valid and start a new session
-            //FIXME update this when the problem is fixed on the API
+            //FIXME do proper error handling for cases other than invalid token
             $this->logout();
             $this->login();
             exit();
@@ -102,7 +99,7 @@ class FenixEduConnector {
         $url = $this->apiBaseUrl . "/api/fenix/v1/" . $endpoint;
         if(!$public){
             if($this->expirationTime <= time()) $this->refreshAccessToken();
-            $url .= '?access_token='. urlencode($this->accessToken);
+            $url .= (strpos($url, '?') === false ? '?' : '&') . 'access_token='. urlencode($this->accessToken);
         }
         return $url;
     }
@@ -113,7 +110,6 @@ class FenixEduConnector {
         $info = $req->getResponseInfo();
         if($info['http_code'] == 401) {
             if(strcmp($result->error, "accessTokenInvalidFormat") == 0) {
-                //TODO should it try to refresh before throwing this session away?
                 $this->logout();
                 $this->login();
                 exit();
@@ -150,10 +146,19 @@ class FenixEduConnector {
                 //TODO use the actual error output
                 throw new FenixEduException("Error logging in!");
             } else if(isset($_GET['code'])) {
+                $state = $this->tokenHolder->getState();
+                if(!isset($_GET['state']) || strcmp($_GET['state'], $state) !== 0 || $state === NULL) {
+                    throw new FenixEduException("Invalid state. Possible malicious request!");
+                }
                 $code = $_GET['code'];
+                $this->tokenHolder->setState(NULL);
                 $this->getAccessTokenFromCode($code);
             } else {
-                $params = array('client_id'    => $this->accessKey, 'redirect_uri' => $this->callbackUrl);
+                $this->tokenHolder->setState($this->stateGenerator->generate());
+                $params = array('client_id' => $this->accessKey,
+                        'redirect_uri' => $this->callbackUrl,
+                        'state' => $this->tokenHolder->getState()
+                );
                 $query = http_build_query($params, '', '&');
                 $authorizationUrl = $this->apiBaseUrl . "/oauth/userdialog?" . $query;
                 header(sprintf("Location: %s", $authorizationUrl));
@@ -165,7 +170,6 @@ class FenixEduConnector {
     /** Logs out the user and erases the access token.
      */
     public function logout() {
-        //TODO should probably invalidate the token on the API too, somehow...
         $this->tokenHolder->drop();
         $this->accessToken = NULL;
         $this->refreshToken = NULL;
